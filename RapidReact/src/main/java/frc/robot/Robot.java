@@ -165,7 +165,6 @@ public class Robot extends TimedRobot {
     );
 
     this.autonomousCommands.put(AutonomousPath.ONE_BALL_PATHPLANNER, base.get()
-            .shootOne(true)
             .executeDrivePath(AutonomousPath.ONE_BALL_PATHPLANNER, 0.5)
             .stop()
     );

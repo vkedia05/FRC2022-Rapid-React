@@ -7,6 +7,7 @@ import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardContainer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.config.Config;
+import frc.robot.utils.MotorUtils;
 
 public class HoodSubsystem extends BitBucketsSubsystem {
 
@@ -50,11 +51,8 @@ public class HoodSubsystem extends BitBucketsSubsystem {
 
 
         SmartDashboard.putNumber(DESIRED_REVOLUTIONS, 0);
-        motor = new CANSparkMax(20, CANSparkMaxLowLevel.MotorType.kBrushless);
 
-        RelativeEncoder encoder;
-        motor.restoreFactoryDefaults();
-
+        motor = MotorUtils.makeSpark(config.hood.hoodMotor);
         // brushless motors can't be inverted
 
         // encoder.setInverted(settings.sensorPhase);
@@ -64,17 +62,13 @@ public class HoodSubsystem extends BitBucketsSubsystem {
 
         // configure position PID constants
         pidController.setFF(0);
-        pidController.setP(0.03);
+        pidController.setP(0.04);
         pidController.setD(0 );
         pidController.setI(0);
         pidController.setIZone(0);
         pidController.setOutputRange(-1, 1);
 
-      //  motor.setInverted(true);
-        encoder = motor.getEncoder();
-        /* Zero the sensor */
-        encoder.setPosition(0);
-
+        motor.getEncoder().setPosition(0);
         motor.setIdleMode(IdleMode.kBrake);
 
         ;
@@ -120,14 +114,8 @@ public class HoodSubsystem extends BitBucketsSubsystem {
 //        if(m_reverseLimit.isLimitSwitchEnabled()){
 //            m_reverseLimit.enableLimitSwitch(true);
 //        }
-        if(visionSubsystem.hasTarget()) {
-            revs = angleTable.get(visionSubsystem.distance());
+        motor.getPIDController().setReference(7, CANSparkMax.ControlType.kPosition);
 
-        }
-        else {
-            revs = 0;
-
-        }
         SmartDashboard.putBoolean("Lerp boolean", lerpShoot);
         SmartDashboard.getNumber(DESIRED_REVOLUTIONS, revs);
         SmartDashboard.putNumber(ACTUAL_REVOLUTIONS, motor.getEncoder(SparkMaxRelativeEncoder.Type.kHallSensor, 42).getPosition());
@@ -159,7 +147,6 @@ public class HoodSubsystem extends BitBucketsSubsystem {
         if(lerpShoot)
         {
 
-            motor.getPIDController().setReference(angle_revs, CANSparkMax.ControlType.kPosition);
 
         }
 
