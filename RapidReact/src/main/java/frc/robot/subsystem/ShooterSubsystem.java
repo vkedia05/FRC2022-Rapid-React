@@ -117,7 +117,8 @@ public class ShooterSubsystem extends BitBucketsSubsystem {
 
   public void spinUpTop() {
     shootState.log("TopShooting");
-
+   // shooterTop.setVoltage(7);
+  //  shooterBottom.setVoltage(7);
     shooterTop.getPIDController().setReference(topSpeedHigh.get() + autoTopSpeedHighOffset, ControlType.kVelocity, MotorUtils.velocitySlot);
     shooterBottom.getPIDController().setReference(bottomSpeedHigh.get() + autoBottomSpeedHighOffset, ControlType.kVelocity, MotorUtils.velocitySlot);
 

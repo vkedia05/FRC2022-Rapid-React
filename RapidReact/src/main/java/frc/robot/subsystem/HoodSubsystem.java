@@ -51,6 +51,10 @@ public class HoodSubsystem extends BitBucketsSubsystem {
         SmartDashboard.putNumber(DESIRED_REVOLUTIONS, 0);
         motor = new CANSparkMax(20, CANSparkMaxLowLevel.MotorType.kBrushless);
 
+        // Smart Motion Coefficients
+        double maxVel = 1500; // rpm
+        double  maxAcc = 700;
+
         RelativeEncoder encoder;
         motor.restoreFactoryDefaults();
 
@@ -63,11 +67,18 @@ public class HoodSubsystem extends BitBucketsSubsystem {
 
         // configure position PID constants
         pidController.setFF(0);
-        pidController.setP(0.03);
+        pidController.setP(0.0005);
         pidController.setD(0 );
         pidController.setI(0);
         pidController.setIZone(0);
         pidController.setOutputRange(-1, 1);
+
+
+        pidController.setSmartMotionMaxVelocity(maxVel, 0);
+        pidController.setSmartMotionMinOutputVelocity(0, 0);
+        pidController.setSmartMotionMaxAccel(maxAcc, 0);
+        pidController.setSmartMotionAllowedClosedLoopError(0, 0);
+
 
       //  motor.setInverted(true);
         encoder = motor.getEncoder();
@@ -122,9 +133,9 @@ public class HoodSubsystem extends BitBucketsSubsystem {
 //        }
 
 
-        double revs = angleTable.get(visionSubsystem.distance());
+        //double revs = angleTable.get(visionSubsystem.distance());
 
-        SmartDashboard.putNumber(DESIRED_REVOLUTIONS, revs);
+        double revs = SmartDashboard.getNumber(DESIRED_REVOLUTIONS,0);
         SmartDashboard.putNumber(ACTUAL_REVOLUTIONS, motor.getEncoder(SparkMaxRelativeEncoder.Type.kHallSensor, 42).getPosition());
         SmartDashboard.putNumber("Conversion factor",motor.getEncoder().getPositionConversionFactor());
         SmartDashboard.putBoolean("Forward Limit Enabled", m_forwardLimit.isPressed());
@@ -145,7 +156,7 @@ public class HoodSubsystem extends BitBucketsSubsystem {
         //TODO
 
         //sets number of rotations of the motor to move the hood by a certain angle parameter
-        motor.getPIDController().setReference(angle_revs, CANSparkMax.ControlType.kPosition);
+        motor.getPIDController().setReference(angle_revs, CANSparkMax.ControlType.kSmartMotion);
     
     }
 

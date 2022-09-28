@@ -449,6 +449,7 @@ public class Robot extends TimedRobot {
 
       buttons.hubSpinUp.whenPressed(() -> {
           shooterSubsystem.spinUpTop();
+            
         }
       );
       buttons.hubSpinUp.whenReleased(() -> {
