@@ -27,12 +27,13 @@ public class ShooterSubsystem extends BitBucketsSubsystem {
   private final Supplier<Double> topSpeedHigh;
   private final Supplier<Double> bottomSpeedHigh;
 
-  private final Changeable<Double> topSpeedHighChangeable = BucketLog.changeable(Put.DOUBLE, "shooter/topShooterSpeed", 2500.0 * 0.85);
+  private final Changeable<Double> topSpeedHighChangeable = BucketLog.changeable(Put.DOUBLE, "shooter/topShooterSpeed", 8500.0);
   private final Changeable<Double> bottomSpeedHighChangeable = BucketLog.changeable(
     Put.DOUBLE,
     "shooter/bottomShooterSpeed",
-    5450.0 * 0.85
+    8500.0
   );
+
 
 
 
@@ -80,11 +81,12 @@ public class ShooterSubsystem extends BitBucketsSubsystem {
 
   ShooterState shooterState = ShooterState.STOPPED;
 
-  public ShooterSubsystem(Config config, HoodSubsystem hoodSubsystem) {
+  public ShooterSubsystem(Config config, HoodSubsystem hoodSubsystem, VisionSubsystem vision) {
     super(config);
 
     topSpeedHigh = () -> {
-      if (lerpShoot) {
+      if (lerpShoot && vision.hasTarget()) {
+
         return hoodSubsystem.getTopShootSpeed();
       }
 
@@ -93,7 +95,7 @@ public class ShooterSubsystem extends BitBucketsSubsystem {
 
 
     bottomSpeedHigh = () -> {
-      if (lerpShoot) {
+      if (lerpShoot && vision.hasTarget()) {
         return hoodSubsystem.getBottomShootSpeed();
       }
 

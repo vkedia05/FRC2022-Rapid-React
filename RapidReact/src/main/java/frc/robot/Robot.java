@@ -94,7 +94,7 @@ public class Robot extends TimedRobot {
       this.robotSubsystems.add(intakeSubsystem = new IntakeSubsystem(this.config));
     }
     if (config.enableShooterSubsystem) {
-      this.robotSubsystems.add(shooterSubsystem = new ShooterSubsystem(this.config, hoodSubsystem));
+      this.robotSubsystems.add(shooterSubsystem = new ShooterSubsystem(this.config, hoodSubsystem,visionSubsystem));
     }
     if (config.enableClimberSubsystem) {
       this.robotSubsystems.add(climberSubsystem = new ClimberSubsystem(this.config));
@@ -165,7 +165,6 @@ public class Robot extends TimedRobot {
     );
 
     this.autonomousCommands.put(AutonomousPath.ONE_BALL_PATHPLANNER, base.get()
-            .shootOne(true)
             .executeDrivePath(AutonomousPath.ONE_BALL_PATHPLANNER, 0.5)
             .stop()
     );
@@ -525,5 +524,6 @@ public class Robot extends TimedRobot {
     }
 
     buttons.toggleShooterLerpSpeed.whenPressed(shooterSubsystem::toggleLerpShoot);
+    buttons.toggleShooterLerpSpeed.whenPressed(hoodSubsystem::toggleLerpShoot);
   }
 }

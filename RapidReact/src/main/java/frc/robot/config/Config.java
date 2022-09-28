@@ -198,7 +198,6 @@ public class Config {
     shooter.shooterBottom.id = shooterBottom_ID;
     shooter.shooterBottom.velocityPIDF = new PIDF(/*P*/0.0001, /*I*/0.001 / 1000, /*D*/0, /*F*/((7.0 / 12.0) / 3500) * (12.0/11.0), /*izone*/300);
     shooter.shooterBottom.inverted = true;
-
     shooter.feeder.id = shooterFeeder_ID;
     shooter.feeder.inverted = true;
     

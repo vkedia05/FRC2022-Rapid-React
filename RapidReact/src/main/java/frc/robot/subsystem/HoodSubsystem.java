@@ -7,10 +7,13 @@ import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardContainer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.config.Config;
+import frc.robot.utils.MotorUtils;
 
 public class HoodSubsystem extends BitBucketsSubsystem {
 
+    boolean lerpShoot = false;
 
+    double revs = 0;
     private CANSparkMax motor;
     
     private SparkMaxLimitSwitch m_forwardLimit;
@@ -47,9 +50,7 @@ public class HoodSubsystem extends BitBucketsSubsystem {
     public void init() {
 
 
-
         SmartDashboard.putNumber(DESIRED_REVOLUTIONS, 0);
-        motor = new CANSparkMax(20, CANSparkMaxLowLevel.MotorType.kBrushless);
 
         // Smart Motion Coefficients
         double maxVel = 1500; // rpm
@@ -87,7 +88,6 @@ public class HoodSubsystem extends BitBucketsSubsystem {
 
         motor.setIdleMode(IdleMode.kBrake);
 
-        ShuffleboardContainer tab = Shuffleboard.getTab("HoodTesting");
         ;
         SmartDashboard.putNumber(ACTUAL_REVOLUTIONS, motor.getEncoder().getPosition());
 
@@ -110,11 +110,11 @@ public class HoodSubsystem extends BitBucketsSubsystem {
 
         //angleTable.put(distance, speed)
         lowMotorTable.put(0d,0d);
-        lowMotorTable.put(100d,100d);
+        lowMotorTable.put(10d,100d);
 
         //angleTable.put(distance, speed)
         highMotorTable.put(0d,0d);
-        highMotorTable.put(100d,100d);
+        highMotorTable.put(10d,100d);
     }
 
     @Override
@@ -131,6 +131,7 @@ public class HoodSubsystem extends BitBucketsSubsystem {
 //        if(m_reverseLimit.isLimitSwitchEnabled()){
 //            m_reverseLimit.enableLimitSwitch(true);
 //        }
+        motor.getPIDController().setReference(7, CANSparkMax.ControlType.kPosition);
 
 
         //double revs = angleTable.get(visionSubsystem.distance());
@@ -143,7 +144,13 @@ public class HoodSubsystem extends BitBucketsSubsystem {
         SmartDashboard.putBoolean("Reverse Limit Enabled", m_reverseLimit.isPressed());
 
 
-       setRevs(revs);
+
+    }
+
+    public void changeHoodAngle()
+    {
+
+        setRevs(revs);
 
     }
 
@@ -180,5 +187,7 @@ public class HoodSubsystem extends BitBucketsSubsystem {
     public double getBottomShootSpeed() {
         return lowMotorTable.get(visionSubsystem.distance());
     }
-
+    public void toggleLerpShoot() {
+        lerpShoot = !lerpShoot;
+    }
 }
