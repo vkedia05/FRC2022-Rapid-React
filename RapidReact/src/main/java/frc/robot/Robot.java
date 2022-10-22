@@ -100,7 +100,7 @@ public class Robot extends TimedRobot {
       this.robotSubsystems.add(hoodSubsystem = new HoodSubsystem(this.config, visionSubsystem));
     }
     if (config.enableShooterSubsystem) {
-      this.robotSubsystems.add(shooterSubsystem = new ShooterSubsystem(this.config, hoodSubsystem,visionSubsystem));
+      this.robotSubsystems.add(shooterSubsystem = new ShooterSubsystem(this.config, hoodSubsystem));
     }
     if (config.enableClimberSubsystem) {
       this.robotSubsystems.add(climberSubsystem = new ClimberSubsystem(this.config));
@@ -167,6 +167,7 @@ public class Robot extends TimedRobot {
     );
 
     this.autonomousCommands.put(AutonomousPath.ONE_BALL_PATHPLANNER, base.get()
+            .shootOne(true)
             .executeDrivePath(AutonomousPath.ONE_BALL_PATHPLANNER, 0.5)
             .stop()
     );
@@ -402,10 +403,10 @@ public class Robot extends TimedRobot {
     // Back button zeros the gyroscope
     if (config.enableDriveSubsystem) {
       buttons.resetOdometry.whenPressed(
-        () -> {
-          this.drivetrainSubsystem.setOdometry(new Pose2d(0, 0, new Rotation2d(0)));
-          this.drivetrainSubsystem.zeroGyro();
-        }
+              () -> {
+                this.drivetrainSubsystem.setOdometry(new Pose2d(0, 0, new Rotation2d(0)));
+                this.drivetrainSubsystem.zeroGyro();
+              }
       );
 
       buttons.slowDrive.whenPressed(() -> this.drivetrainSubsystem.speedModifier = 0.25);
@@ -423,15 +424,15 @@ public class Robot extends TimedRobot {
 
     if (config.enableIntakeSubsystem && config.enableShooterSubsystem) {
       buttons.intake.whenPressed(
-        () -> {
-          shooterSubsystem.antiFeed();
-          intakeSubsystem.spinForward();
-        }
+              () -> {
+                shooterSubsystem.antiFeed();
+                intakeSubsystem.spinForward();
+              }
       );
       buttons.intake.whenReleased(
-        () -> {
-          shooterSubsystem.turnOffFeeders();
-        }
+              () -> {
+                shooterSubsystem.turnOffFeeders();
+              }
       );
     }
 
@@ -449,34 +450,45 @@ public class Robot extends TimedRobot {
 
 
       buttons.hubSpinUp.whenPressed(() -> {
-          shooterSubsystem.spinUpTop();
-          hoodSubsystem.changeHoodAngle();
-            
-        }
+                shooterSubsystem.spinUpTop();
+                hoodSubsystem.setRevsHub();
+
+              }
+      );
+      buttons.tarmacSpinUp.whenPressed(() -> {
+                shooterSubsystem.spinUpTopTarmac();
+                hoodSubsystem.setRevsTarmac();
+
+              }
+      );
+      buttons.launchSpinUp.whenPressed(() -> {
+                shooterSubsystem.spinUpTopLaunch();
+                hoodSubsystem.setRevsLaunch();
+
+              }
       );
       buttons.hubSpinUp.whenReleased(() -> {
-          shooterSubsystem.stopShoot();
-          if (config.enableIntakeSubsystem) {
-            intakeSubsystem.stopBallManagement();
-          }
-        }
+                shooterSubsystem.stopShoot();
+                if (config.enableIntakeSubsystem) {
+                  intakeSubsystem.stopBallManagement();
+                }
+              }
       );
 
-      buttons.autoShoot.whenHeld(new AutoShootCommand(this.shooterSubsystem, this.intakeSubsystem, this.rgbSubsystem,this.hoodSubsystem).withParameters(2, true));
+      buttons.autoShoot.whenHeld(new AutoShootCommand(this.shooterSubsystem, this.intakeSubsystem, this.rgbSubsystem, this.hoodSubsystem).withParameters(2, true));
 
-      buttons.autoShootOne.whenHeld(new AutoShootCommand(this.shooterSubsystem, this.intakeSubsystem, this.rgbSubsystem,this.hoodSubsystem).withParameters(1, true));
 
       buttons.feedInFireNew.whenPressed(
-        () -> {
-          shooterSubsystem.turnOnFeeders();
-          intakeSubsystem.ballManagementForward();
-        }
+              () -> {
+                shooterSubsystem.turnOnFeeders();
+                intakeSubsystem.ballManagementForward();
+              }
       );
       buttons.feedInFireNew.whenReleased(
-        () -> {
-          shooterSubsystem.turnOffFeeders();
-          intakeSubsystem.stopBallManagement();
-        }
+              () -> {
+                shooterSubsystem.turnOffFeeders();
+                intakeSubsystem.stopBallManagement();
+              }
       );
     }
 
@@ -485,40 +497,40 @@ public class Robot extends TimedRobot {
       buttons.toggleElevator.whenPressed(() -> climberSubsystem.elevatorToggle());
 
       buttons.elevatorExtend.whenPressed(
-        () -> {
-          rgbSubsystem.climberEnabled();
-          climberSubsystem.manualElevatorExtend();
-        }
+              () -> {
+                rgbSubsystem.climberEnabled();
+                climberSubsystem.manualElevatorExtend();
+              }
       );
       buttons.elevatorExtend.whenReleased(
-        () -> {
-          rgbSubsystem.normalize();
-          climberSubsystem.elevatorStop();
-        }
+              () -> {
+                rgbSubsystem.normalize();
+                climberSubsystem.elevatorStop();
+              }
       );
 
       buttons.elevatorRetract.whenPressed(
-        () -> {
-          rgbSubsystem.climberEnabled();
-          climberSubsystem.manualElevatorRetract();
-        }
+              () -> {
+                rgbSubsystem.climberEnabled();
+                climberSubsystem.manualElevatorRetract();
+              }
       );
       buttons.elevatorRetract.whenReleased(
-        () -> {
-          rgbSubsystem.normalize();
-          climberSubsystem.elevatorStop();
-        }
+              () -> {
+                rgbSubsystem.normalize();
+                climberSubsystem.elevatorStop();
+              }
       );
     }
 
     buttons.rgb.whenPressed(
-      () -> {
-        rgbSubsystem.funnyButton();
-      }
+            () -> {
+              rgbSubsystem.funnyButton();
+            }
     );
 
     //Hood Buttons
-    if(config.enableHoodSubsystem){
+    if (config.enableHoodSubsystem) {
       buttons.hoodUp.whenPressed(hoodSubsystem::hoodUp);
       buttons.hoodDown.whenPressed(hoodSubsystem::hoodDown);
 
@@ -526,11 +538,12 @@ public class Robot extends TimedRobot {
       buttons.hoodDown.whenReleased(hoodSubsystem::hoodStop);
     }
 
-    buttons.toggleShooterLerpSpeed.whenPressed( () ->
-    {
-      shooterSubsystem.toggleLerpShoot();
-      hoodSubsystem.toggleLerpShoot();
-    }
+    buttons.toggleShooterLerpSpeed.whenPressed(
+            () -> {
+              shooterSubsystem.toggleLerpShoot();
+              hoodSubsystem.toggleLerpShoot();
+            }
+
     );
   }
 }

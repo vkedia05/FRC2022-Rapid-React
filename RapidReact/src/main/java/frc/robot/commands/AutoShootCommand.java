@@ -49,6 +49,7 @@ public class AutoShootCommand extends SequentialCommandGroup
                                             this.intake.stopBallManagement();
                                             this.shooter.turnOffFeeders();
                                         })),
+                new InstantCommand(hood::setRevsHub),
 
                 //Activate shooter
                 new InstantCommand(this.top ? this.shooter::spinUpTop : this.shooter::shootLow),
@@ -56,7 +57,6 @@ public class AutoShootCommand extends SequentialCommandGroup
                 //Wait for shooter to get up to speed
                 new WaitUntilCommand(this.top ? this.shooter::isUpToHighSpeed : this.shooter::isUpToLowSpeed)
                         /*.raceWith(new WaitCommand(0.5))*/,
-                new InstantCommand(() -> hood.setRevs(0)),
 
                 //Extremely important RGB
                 new InstantCommand(this.rgb::autoShootingSingle),
@@ -100,6 +100,7 @@ public class AutoShootCommand extends SequentialCommandGroup
                             this.intake.stopBallManagement();
                             this.shooter.turnOffFeeders();
                         })),
+                new InstantCommand(hood::setRevsHub),
 
                 //Activate shooter
                 new InstantCommand(this.top ? this.shooter::spinUpTop : this.shooter::shootLow),

@@ -34,7 +34,8 @@ public class Buttons {
   JoystickButton toggleElevator = new JoystickButton(operatorControl, Xbox.L1);
   JoystickButton feedInFire = new JoystickButton(operatorControl, Xbox.L2);
   JoystickButton autoShoot = new JoystickButton(operatorControl, Xbox.SQUARE);
-  JoystickButton autoShootOne = new JoystickButton(operatorControl, Xbox.R_STICK);
+  JoystickButton tarmacSpinUp = new JoystickButton(operatorControl, Xbox.R_STICK);
+  JoystickButton launchSpinUp = new JoystickButton(operatorControl, Xbox.L_STICK);
 
   JoystickButton toggleIntake = new JoystickButton(operatorControl, Xbox.CIRCLE);
   JoystickButton intake = new JoystickButton(operatorControl, Xbox.TRIANGLE);

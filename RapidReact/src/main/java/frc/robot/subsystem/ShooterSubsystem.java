@@ -23,12 +23,16 @@ public class ShooterSubsystem extends BitBucketsSubsystem {
   private CANSparkMax shooterBottom;
   private TalonSRX feeder;
 
-  private final HoodSubsystem hoodSubsystem;
-
   boolean lerpShoot = false;
 
-  //private final Supplier<Double> topSpeedHigh;
+  private final Supplier<Double> topSpeedHigh;
   private final Supplier<Double> bottomSpeedHigh;
+
+  private final Supplier<Double> topSpeedHighTarmac;
+  private final Supplier<Double> bottomSpeedHighTarmac;
+
+  private final Supplier<Double> topSpeedHighLaunch;
+  private final Supplier<Double> bottomSpeedHighLaunch;
 
   private final Changeable<Double> topSpeedHighChangeable = BucketLog.changeable(Put.DOUBLE, "shooter/topShooterSpeed", 2125d);
   private final Changeable<Double> bottomSpeedHighChangeable = BucketLog.changeable(
@@ -36,7 +40,6 @@ public class ShooterSubsystem extends BitBucketsSubsystem {
     "shooter/bottomShooterSpeed",
     3500d
   );
-
 
 
 
@@ -84,38 +87,62 @@ public class ShooterSubsystem extends BitBucketsSubsystem {
 
   ShooterState shooterState = ShooterState.STOPPED;
 
-  public ShooterSubsystem(Config config, HoodSubsystem hoodSubsystem, VisionSubsystem vision) {
+  public ShooterSubsystem(Config config, HoodSubsystem hoodSubsystem) {
     super(config);
-    this.hoodSubsystem = hoodSubsystem;
 
+    topSpeedHigh = () -> {
+      if (lerpShoot) {
+        return 2125d;
+      }
 
+      return topSpeedHighChangeable.currentValue();
+    };
 
 
     bottomSpeedHigh = () -> {
       if (lerpShoot) {
-        return hoodSubsystem.getBottomShootSpeed();
+        return 3500d;
       }
 
       return bottomSpeedHighChangeable.currentValue();
     };
-  }
 
 
-
-  public double topSpeedHigh() {
-
-
+  topSpeedHighTarmac = () -> {
     if (lerpShoot) {
-
-      return hoodSubsystem.getTopShootSpeed();
+      return 2125d;
     }
 
     return topSpeedHighChangeable.currentValue();
-  }
+  };
 
 
+  bottomSpeedHighTarmac = () -> {
+    if (lerpShoot) {
+      return 3500d;
+    }
+
+    return bottomSpeedHighChangeable.currentValue();
+  };
+
+    topSpeedHighLaunch = () -> {
+      if (lerpShoot) {
+        return 3500d;
+      }
+
+      return topSpeedHighChangeable.currentValue();
+    };
 
 
+    bottomSpeedHighLaunch = () -> {
+      if (lerpShoot) {
+        return 3500d;
+      }
+
+      return bottomSpeedHighChangeable.currentValue();
+    };
+
+}
   public boolean isShooting(){
     return shooterState != ShooterState.STOPPED;
   }
@@ -134,14 +161,35 @@ public class ShooterSubsystem extends BitBucketsSubsystem {
     shootState.log("TopShooting");
    // shooterTop.setVoltage(7);
   //  shooterBottom.setVoltage(7);
-    shooterTop.getPIDController().setReference(topSpeedHigh() + autoTopSpeedHighOffset, ControlType.kVelocity, MotorUtils.velocitySlot);
+    shooterTop.getPIDController().setReference(topSpeedHigh.get() + autoTopSpeedHighOffset, ControlType.kVelocity, MotorUtils.velocitySlot);
     shooterBottom.getPIDController().setReference(bottomSpeedHigh.get() + autoBottomSpeedHighOffset, ControlType.kVelocity, MotorUtils.velocitySlot);
-    SmartDashboard.putNumber("ACTUAL SPEED SET HIGH",topSpeedHigh());
-    SmartDashboard.putNumber("ACTUAL SPEED SET Low",bottomSpeedHigh.get());
+    SmartDashboard.putNumber("actual speed high", topSpeedHigh.get());
+    SmartDashboard.putNumber("actual speed low", bottomSpeedHigh.get());
 
     shooterState = ShooterState.TOP;
   }
+  public void spinUpTopTarmac() {
+    shootState.log("TopShooting");
+    // shooterTop.setVoltage(7);
+    //  shooterBottom.setVoltage(7);
+    shooterTop.getPIDController().setReference(topSpeedHighTarmac.get() + autoTopSpeedHighOffset, ControlType.kVelocity, MotorUtils.velocitySlot);
+    shooterBottom.getPIDController().setReference(bottomSpeedHighTarmac.get() + autoBottomSpeedHighOffset, ControlType.kVelocity, MotorUtils.velocitySlot);
+    SmartDashboard.putNumber("actual speed high", topSpeedHighTarmac.get());
+    SmartDashboard.putNumber("actual speed low", bottomSpeedHighTarmac.get());
 
+    shooterState = ShooterState.TOP;
+  }
+  public void spinUpTopLaunch() {
+    shootState.log("TopShooting");
+    // shooterTop.setVoltage(7);
+    //  shooterBottom.setVoltage(7);
+    shooterTop.getPIDController().setReference(topSpeedHighLaunch.get() + autoTopSpeedHighOffset, ControlType.kVelocity, MotorUtils.velocitySlot);
+    shooterBottom.getPIDController().setReference(bottomSpeedHighLaunch.get() + autoBottomSpeedHighOffset, ControlType.kVelocity, MotorUtils.velocitySlot);
+    SmartDashboard.putNumber("actual speed high", topSpeedHighLaunch.get());
+    SmartDashboard.putNumber("actual speed low", bottomSpeedHighLaunch.get());
+
+    shooterState = ShooterState.TOP;
+  }
   public void shootLow() {
     shootState.log("LowShooting");
 
@@ -206,7 +254,7 @@ public class ShooterSubsystem extends BitBucketsSubsystem {
 
   public boolean isUpToHighSpeed() {
 
-    boolean state = (motorIsInSpeedDeadband(shooterTop, topSpeedHigh() + autoTopSpeedHighOffset) && motorIsInSpeedDeadband(shooterBottom, bottomSpeedHigh.get() + autoBottomSpeedHighOffset));
+    boolean state = (motorIsInSpeedDeadband(shooterTop, topSpeedHigh.get() + autoTopSpeedHighOffset) && motorIsInSpeedDeadband(shooterBottom, bottomSpeedHigh.get() + autoBottomSpeedHighOffset));
     if (state) {
       upToSpeedCount++;
     } else {
@@ -236,7 +284,7 @@ public class ShooterSubsystem extends BitBucketsSubsystem {
         topError = shooterTop.getEncoder().getVelocity() - topSpeedLow.currentValue();
         bottomError = shooterBottom.getEncoder().getVelocity() - bottomSpeedLow.currentValue();
       } else {
-        topError = shooterTop.getEncoder().getVelocity() - (topSpeedHigh() + autoTopSpeedHighOffset);
+        topError = shooterTop.getEncoder().getVelocity() - (topSpeedHigh.get() + autoTopSpeedHighOffset);
         bottomError = shooterBottom.getEncoder().getVelocity() - (bottomSpeedHigh.get() + autoBottomSpeedHighOffset);
       }
 
@@ -284,5 +332,6 @@ public class ShooterSubsystem extends BitBucketsSubsystem {
 
   public void toggleLerpShoot() {
     lerpShoot = !lerpShoot;
+    SmartDashboard.putBoolean("lerptoggle", lerpShoot);
   }
 }
