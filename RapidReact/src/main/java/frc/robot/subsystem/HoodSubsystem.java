@@ -43,14 +43,21 @@ public class HoodSubsystem extends BitBucketsSubsystem {
     public HoodSubsystem(Config config, VisionSubsystem visionSubsystem) {
         super(config);
         this.visionSubsystem = visionSubsystem;
+        revs = () -> {
+            if (lerpShoot) {
+
+                return angleTable.get(visionSubsystem.distance());
+            }
+
+            return hoodAngle.currentValue();
+        };
     }
 
 
     @Override
     public void init() {
 
-
-        SmartDashboard.putNumber(DESIRED_REVOLUTIONS, 0);
+        motor = new CANSparkMax(20, CANSparkMaxLowLevel.MotorType.kBrushless);
 
         // Smart Motion Coefficients
         double maxVel = 1500; // rpm
@@ -110,11 +117,11 @@ public class HoodSubsystem extends BitBucketsSubsystem {
 
         //angleTable.put(distance, speed)
         lowMotorTable.put(0d,0d);
-        lowMotorTable.put(10d,100d);
+        lowMotorTable.put(10d,3500d);
 
         //angleTable.put(distance, speed)
-        highMotorTable.put(0d,0d);
-        highMotorTable.put(10d,100d);
+        highMotorTable.put(0d,2125d);
+        highMotorTable.put(10d,3500d);
     }
 
     @Override
@@ -147,11 +154,11 @@ public class HoodSubsystem extends BitBucketsSubsystem {
 
     }
 
-    public void changeHoodAngle()
+    public void
+    changeHoodAngle()
     {
 
-        setRevs(revs);
-
+        setRevs(revs.get());
     }
 
     @Override
@@ -181,6 +188,9 @@ public class HoodSubsystem extends BitBucketsSubsystem {
     }
 
     public double getTopShootSpeed() {
+
+
+
         return highMotorTable.get(visionSubsystem.distance());
     }
 

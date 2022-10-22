@@ -81,6 +81,9 @@ public class Robot extends TimedRobot {
     SmartDashboard.putData("Autonomous Path Chooser", this.autonomousChooser);
 
     // Add Subsystems Here
+    if (config.enableVisionSubsystem) {
+      this.robotSubsystems.add(visionSubsystem = new VisionSubsystem(this.config));
+    }
     if (config.enableAutonomousSubsystem) {
       this.robotSubsystems.add(autonomousSubsystem = new AutonomousSubsystem(this.config));
     }
@@ -93,18 +96,17 @@ public class Robot extends TimedRobot {
     if (config.enableIntakeSubsystem) {
       this.robotSubsystems.add(intakeSubsystem = new IntakeSubsystem(this.config));
     }
+    if (config.enableHoodSubsystem) {
+      this.robotSubsystems.add(hoodSubsystem = new HoodSubsystem(this.config, visionSubsystem));
+    }
     if (config.enableShooterSubsystem) {
       this.robotSubsystems.add(shooterSubsystem = new ShooterSubsystem(this.config, hoodSubsystem,visionSubsystem));
     }
     if (config.enableClimberSubsystem) {
       this.robotSubsystems.add(climberSubsystem = new ClimberSubsystem(this.config));
     }
-    if (config.enableVisionSubsystem) {
-      this.robotSubsystems.add(visionSubsystem = new VisionSubsystem(this.config));
-    }
-    if (config.enableHoodSubsystem) {
-      this.robotSubsystems.add(hoodSubsystem = new HoodSubsystem(this.config, visionSubsystem));
-    }
+
+
     // create a new field to update
     SmartDashboard.putData("Field", field);
 
@@ -448,6 +450,7 @@ public class Robot extends TimedRobot {
 
       buttons.hubSpinUp.whenPressed(() -> {
           shooterSubsystem.spinUpTop();
+          hoodSubsystem.changeHoodAngle();
             
         }
       );
@@ -523,7 +526,11 @@ public class Robot extends TimedRobot {
       buttons.hoodDown.whenReleased(hoodSubsystem::hoodStop);
     }
 
-    buttons.toggleShooterLerpSpeed.whenPressed(shooterSubsystem::toggleLerpShoot);
-    buttons.toggleShooterLerpSpeed.whenPressed(hoodSubsystem::toggleLerpShoot);
+    buttons.toggleShooterLerpSpeed.whenPressed( () ->
+    {
+      shooterSubsystem.toggleLerpShoot();
+      hoodSubsystem.toggleLerpShoot();
+    }
+    );
   }
 }

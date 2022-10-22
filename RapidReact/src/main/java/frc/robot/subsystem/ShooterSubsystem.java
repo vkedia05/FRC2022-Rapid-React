@@ -9,6 +9,7 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.simulation.EncoderSim;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Robot;
 import frc.robot.config.Config;
 import frc.robot.log.*;
@@ -22,16 +23,18 @@ public class ShooterSubsystem extends BitBucketsSubsystem {
   private CANSparkMax shooterBottom;
   private TalonSRX feeder;
 
+  private final HoodSubsystem hoodSubsystem;
+
   boolean lerpShoot = false;
 
-  private final Supplier<Double> topSpeedHigh;
+  //private final Supplier<Double> topSpeedHigh;
   private final Supplier<Double> bottomSpeedHigh;
 
-  private final Changeable<Double> topSpeedHighChangeable = BucketLog.changeable(Put.DOUBLE, "shooter/topShooterSpeed", 8500.0);
+  private final Changeable<Double> topSpeedHighChangeable = BucketLog.changeable(Put.DOUBLE, "shooter/topShooterSpeed", 2125d);
   private final Changeable<Double> bottomSpeedHighChangeable = BucketLog.changeable(
     Put.DOUBLE,
     "shooter/bottomShooterSpeed",
-    8500.0
+    3500d
   );
 
 
@@ -83,25 +86,35 @@ public class ShooterSubsystem extends BitBucketsSubsystem {
 
   public ShooterSubsystem(Config config, HoodSubsystem hoodSubsystem, VisionSubsystem vision) {
     super(config);
+    this.hoodSubsystem = hoodSubsystem;
 
-    topSpeedHigh = () -> {
-      if (lerpShoot && vision.hasTarget()) {
 
-        return hoodSubsystem.getTopShootSpeed();
-      }
-
-      return topSpeedHighChangeable.currentValue();
-    };
 
 
     bottomSpeedHigh = () -> {
-      if (lerpShoot && vision.hasTarget()) {
+      if (lerpShoot) {
         return hoodSubsystem.getBottomShootSpeed();
       }
 
       return bottomSpeedHighChangeable.currentValue();
     };
   }
+
+
+
+  public double topSpeedHigh() {
+
+
+    if (lerpShoot) {
+
+      return hoodSubsystem.getTopShootSpeed();
+    }
+
+    return topSpeedHighChangeable.currentValue();
+  }
+
+
+
 
   public boolean isShooting(){
     return shooterState != ShooterState.STOPPED;
@@ -121,8 +134,10 @@ public class ShooterSubsystem extends BitBucketsSubsystem {
     shootState.log("TopShooting");
    // shooterTop.setVoltage(7);
   //  shooterBottom.setVoltage(7);
-    shooterTop.getPIDController().setReference(topSpeedHigh.get() + autoTopSpeedHighOffset, ControlType.kVelocity, MotorUtils.velocitySlot);
+    shooterTop.getPIDController().setReference(topSpeedHigh() + autoTopSpeedHighOffset, ControlType.kVelocity, MotorUtils.velocitySlot);
     shooterBottom.getPIDController().setReference(bottomSpeedHigh.get() + autoBottomSpeedHighOffset, ControlType.kVelocity, MotorUtils.velocitySlot);
+    SmartDashboard.putNumber("ACTUAL SPEED SET HIGH",topSpeedHigh());
+    SmartDashboard.putNumber("ACTUAL SPEED SET Low",bottomSpeedHigh.get());
 
     shooterState = ShooterState.TOP;
   }
@@ -191,7 +206,7 @@ public class ShooterSubsystem extends BitBucketsSubsystem {
 
   public boolean isUpToHighSpeed() {
 
-    boolean state = (motorIsInSpeedDeadband(shooterTop, topSpeedHigh.get() + autoTopSpeedHighOffset) && motorIsInSpeedDeadband(shooterBottom, bottomSpeedHigh.get() + autoBottomSpeedHighOffset));
+    boolean state = (motorIsInSpeedDeadband(shooterTop, topSpeedHigh() + autoTopSpeedHighOffset) && motorIsInSpeedDeadband(shooterBottom, bottomSpeedHigh.get() + autoBottomSpeedHighOffset));
     if (state) {
       upToSpeedCount++;
     } else {
@@ -221,7 +236,7 @@ public class ShooterSubsystem extends BitBucketsSubsystem {
         topError = shooterTop.getEncoder().getVelocity() - topSpeedLow.currentValue();
         bottomError = shooterBottom.getEncoder().getVelocity() - bottomSpeedLow.currentValue();
       } else {
-        topError = shooterTop.getEncoder().getVelocity() - (topSpeedHigh.get() + autoTopSpeedHighOffset);
+        topError = shooterTop.getEncoder().getVelocity() - (topSpeedHigh() + autoTopSpeedHighOffset);
         bottomError = shooterBottom.getEncoder().getVelocity() - (bottomSpeedHigh.get() + autoBottomSpeedHighOffset);
       }
 
